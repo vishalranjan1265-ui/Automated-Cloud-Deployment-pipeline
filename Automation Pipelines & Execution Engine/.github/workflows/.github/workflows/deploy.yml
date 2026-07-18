@@ -1,0 +1,47 @@
+name: "Production Automated Cloud Deployment Pipeline"
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  id-token: "write"
+  contents: "read"
+
+jobs:
+  orchestrate_delivery:
+    name: "Deploy Application Package over Infrastructure Targets"
+    runs-on: "ubuntu-latest"
+    
+    steps:
+      - name: "Clone Workspace Source Framework"
+        uses: "actions/checkout@v4"
+
+      - name: "Mount Execution Python Environment"
+        uses: "actions/setup-python@v5"
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: "Install System Automation Requirements"
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: "Configure AWS Identity Assumed Credentials via OIDC secure context"
+        uses: "aws-actions/configure-aws-credentials@v4"
+        with:
+          role-to-assume: "arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsAutomatedDeploymentRole"
+          aws-region: "us-east-1"
+
+      - name: "Trigger Relocated Delivery Orchestration Framework Shell"
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_REGION: "us-east-1"
+          ECR_REPO_NAME: "cloud-auto-deploy-app"
+          EC2_IAM_ROLE_ARN: ${{ secrets.EC2_INSTANCE_PROFILE_ROLE_ARN }}
+        run: |
+          cd scripts
+          chmod +x deploy.sh
+          ./deploy.sh
