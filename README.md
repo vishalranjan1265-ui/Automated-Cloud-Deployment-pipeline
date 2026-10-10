@@ -27,3 +27,7 @@ Early-stage learning project — currently deploys a simple static site to S3; n
 ## Tech Used
 
 Python, AWS, Docker, GitHub Actions, CI/CD
+
+## Author 
+
+Vishal Ranjan 
